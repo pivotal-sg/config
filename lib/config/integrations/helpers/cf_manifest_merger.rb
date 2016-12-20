@@ -1,27 +1,30 @@
 module Config
   class CFManifestMerger
-    def initialize(path)
-      @path = path
+    def initialize(app_name, path)
+      @app_name = app_name
+      @manifest_path = path
+      raise ArgumentError.new("Manifest path & app name must be specified") unless @app_name && @manifest_path
     end
 
     def add_to_env
-      raise StandardError.new("Cloud Foundry manifest file `cf_manifest.yml` not found") unless File.exist?(@path)
-
-      cf_manifest_hash = YAML.load(IO.read(@path))
+      cf_manifest_hash = YAML.load(IO.read(@manifest_path))
 
       settings_hash = Kernel.const_get(Config.const_name).to_hash.stringify_keys
 
       prefix_keys_with_const_name_hash = to_dotted_hash(settings_hash, {}, Config.const_name)
 
-      env_hash = cf_manifest_hash['applications'].first['env']
+      app_hash = cf_manifest_hash['applications'].detect { |hash| hash['name'] == @app_name }
 
-      check_conflicting_keys(env_hash, settings_hash)
+      raise ArgumentError, "Application '#{@app_name}' is not specified in your manifest" if app_hash.nil?
 
-      env_hash.merge!(prefix_keys_with_const_name_hash)
+      check_conflicting_keys(app_hash['env'], settings_hash)
+
+      app_hash['env'].merge!(prefix_keys_with_const_name_hash)
 
       cf_manifest_hash
     end
 
+    # TODO duplicate of heroku.rb => refactor
     def to_dotted_hash(source, target = {}, namespace = nil)
       prefix = "#{namespace}." if namespace
       case source
@@ -39,11 +42,10 @@ module Config
       target
     end
 
-    private
-
-    def check_conflicting_keys(env_hash, settings_hash)
+    private def check_conflicting_keys(env_hash, settings_hash)
       conflicting_keys = env_hash.keys & settings_hash.keys
       raise ArgumentError.new("Conflicting keys: #{conflicting_keys.join(', ')}") if conflicting_keys.any?
     end
+
   end
 end

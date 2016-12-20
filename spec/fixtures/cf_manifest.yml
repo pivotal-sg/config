@@ -5,3 +5,7 @@ applications:
     DEFAULT_HOST: host
     DEFAULT_PORT: port
     FOO: BAR
+
+- name: app_name
+  env:
+    DEFAULT_HOST: host

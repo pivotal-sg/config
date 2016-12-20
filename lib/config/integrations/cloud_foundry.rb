@@ -1,59 +1,25 @@
 require 'bundler'
+require 'yaml'
+require_relative '../../../lib/config/integrations/helpers/cf_manifest_merger'
 
 module Config
   module Integrations
-    class CloudFoundry < Struct.new(:app)
+    class CloudFoundry < Struct.new(:app_name, :file_path)
 
       def invoke
-        filename = 'cf_manifest.yml'
-        puts 'Generating file...'
+        manifest_path = file_path || 'manifest.yml'
+        file_name, _ext = manifest_path.split('.yml')
 
-        puts "File #{filename} generated."
+        puts "Generating manifest... (base cf manifest: #{manifest_path})"
+
+        merged_hash = Config::CFManifestMerger.new(app_name, File.join(::Rails.root, manifest_path)).add_to_env
+
+        target_manifest_path = File.join(::Rails.root, "#{file_name}-#{::Rails.env}.yml")
+        IO.write(target_manifest_path, merged_hash.to_yaml)
+
+        puts "File #{target_manifest_path} generated."
       end
 
-      def vars
-        # Load only local options to Heroku
-        Config.load_and_set_settings(
-            Rails.root.join("config", "settings.local.yml").to_s,
-            Rails.root.join("config", "settings", "#{environment}.local.yml").to_s,
-            Rails.root.join("config", "environments", "#{environment}.local.yml").to_s
-        )
-
-        out = ''
-        dotted_hash = to_dotted_hash Kernel.const_get(Config.const_name).to_hash, {}, Config.const_name
-        dotted_hash.each {|key, value| out += " #{key}=#{value} "}
-        out
-      end
-
-      def environment
-        heroku("run 'echo $RAILS_ENV'").chomp[/(\w+)\z/]
-      end
-
-      def heroku(command)
-        with_app = app ? " --app #{app}" : ""
-        `heroku #{command}#{with_app}`
-      end
-
-      def `(command)
-        Bundler.with_clean_env { super }
-      end
-
-      def to_dotted_hash(source, target = {}, namespace = nil)
-        prefix = "#{namespace}." if namespace
-        case source
-          when Hash
-            source.each do |key, value|
-              to_dotted_hash(value, target, "#{prefix}#{key}")
-            end
-          when Array
-            source.each_with_index do |value, index|
-              to_dotted_hash(value, target, "#{prefix}#{index}")
-            end
-          else
-            target[namespace] = source
-        end
-        target
-      end
     end
   end
 end
