@@ -1,19 +1,22 @@
+require_relative 'helpers'
+
 module Config
   class CFManifestMerger
-    def initialize(app_name, path)
+    include Integrations::Helpers
+
+    def initialize(app_name, manifest_hash)
       @app_name = app_name
-      @manifest_path = path
-      raise ArgumentError.new("Manifest path & app name must be specified") unless @app_name && @manifest_path
+      @manifest_hash = manifest_hash
+      raise ArgumentError.new("Manifest path & app name must be specified") unless @app_name && @manifest_hash
     end
 
     def add_to_env
-      cf_manifest_hash = YAML.load(IO.read(@manifest_path))
 
       settings_hash = Kernel.const_get(Config.const_name).to_hash.stringify_keys
 
       prefix_keys_with_const_name_hash = to_dotted_hash(settings_hash, {}, Config.const_name)
 
-      app_hash = cf_manifest_hash['applications'].detect { |hash| hash['name'] == @app_name }
+      app_hash = @manifest_hash['applications'].detect { |hash| hash['name'] == @app_name }
 
       raise ArgumentError, "Application '#{@app_name}' is not specified in your manifest" if app_hash.nil?
 
@@ -21,25 +24,7 @@ module Config
 
       app_hash['env'].merge!(prefix_keys_with_const_name_hash)
 
-      cf_manifest_hash
-    end
-
-    # TODO duplicate of heroku.rb => refactor
-    def to_dotted_hash(source, target = {}, namespace = nil)
-      prefix = "#{namespace}." if namespace
-      case source
-        when Hash
-          source.each do |key, value|
-            to_dotted_hash(value, target, "#{prefix}#{key}")
-          end
-        when Array
-          source.each_with_index do |value, index|
-            to_dotted_hash(value, target, "#{prefix}#{index}")
-          end
-        else
-          target[namespace] = source
-      end
-      target
+      @manifest_hash
     end
 
     private def check_conflicting_keys(env_hash, settings_hash)

@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'rake'
 
 describe 'config:cf' do
   include_context 'rake'
@@ -19,7 +18,7 @@ describe 'config:cf' do
 
       FileUtils.cp("#{fixture_path}/cf_manifest.yml", File.join(Rails.root, 'manifest.yml'))
 
-      Rake::Task['config:cf'].invoke('app_name')
+      Rake::Task['config:cf'].execute({:app_name => 'app_name'})
 
       target_file_path = File.join(Rails.root, 'manifest-test.yml')
       target_file_contents = YAML.load(IO.read(target_file_path))
@@ -41,7 +40,7 @@ describe 'config:cf' do
 
       FileUtils.cp("#{fixture_path}/cf_manifest.yml", File.join(Rails.root, 'cf_manifest.yml'))
 
-      Rake::Task['config:cf'].invoke('app_name', 'cf_manifest.yml')
+      Rake::Task['config:cf'].execute({app_name: 'app_name', file_path: 'cf_manifest.yml'})
 
       target_file_path = File.join(Rails.root, 'cf_manifest-test.yml')
 
@@ -51,6 +50,10 @@ describe 'config:cf' do
       Rails.application.config.root = orig_rails_root
     end
   end
-end
 
-# TODO 1. Test a file with a name other than "manifest.yml"
+  it 'raises an error if the specified file is missing' do
+    expect {
+      Rake::Task['config:cf'].execute({app_name: 'app_name', file_path: 'null.yml'})
+    }.to raise_error(SystemCallError)
+  end
+end

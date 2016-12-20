@@ -300,6 +300,16 @@ filesystem gets recreated from the git sources on each instance refresh. To use 
 
 To upload your local values to Heroku you could ran `bundle exec rake config:heroku`.
 
+### Working with Cloud Foundry
+
+Cloud Foundry integration will generate a manifest adding to your CF manifest.yml the defined ENV variables under the `env` section of specified app in the yaml file.
+You must specify the app name and optionally the name of your CF manifest file:
+
+    bundle exec rake config:cf[app_name, cf_manifest.yml]
+    
+The result of this command will have the manifest file name suffixed with the environment you ran the task in. You can then push your app with the generated manifest.    
+
+
 ### Fine-tuning
 
 You can customize how environment variables are processed:
