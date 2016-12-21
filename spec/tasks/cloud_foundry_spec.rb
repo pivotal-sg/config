@@ -8,9 +8,7 @@ describe 'config:cf' do
     Rake::Task.define_task(:environment)
   end
 
-  before do
-    allow($stdout).to receive(:puts) # suppressing console output during testing
-  end
+  before { allow($stdout).to receive(:puts) } # suppressing console output during testing
 
   after :all do
     Settings.reload_from_files("#{fixture_path}/settings.yml")
