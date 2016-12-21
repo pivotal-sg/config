@@ -12,7 +12,7 @@ module Config
 
     def add_to_env
 
-      settings_hash = Kernel.const_get(Config.const_name).to_hash.stringify_keys
+      settings_hash = Config.const_get(Config.const_name).to_hash.stringify_keys
 
       prefix_keys_with_const_name_hash = to_dotted_hash(settings_hash, namespace: Config.const_name)
 

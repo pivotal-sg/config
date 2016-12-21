@@ -3,6 +3,10 @@ require_relative '../../../lib/config/integrations/helpers/cf_manifest_merger'
 
 describe Config::CFManifestMerger do
 
+  after do
+    Settings.reload_from_files("#{fixture_path}/settings.yml")
+  end
+
   it 'raises an argument error if you do not specify an app name' do
     expect {
       Config::CFManifestMerger.new(nil, load_manifest('cf_manifest.yml'))

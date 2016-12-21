@@ -12,6 +12,10 @@ describe 'config:cf' do
     allow($stdout).to receive(:puts) # suppressing console output during testing
   end
 
+  after :all do
+    Settings.reload_from_files("#{fixture_path}/settings.yml")
+  end
+
   it 'creates the merge manifest file for cf' do
     Config.load_and_set_settings "#{fixture_path}/cf/cf_multilevel.yml"
 
