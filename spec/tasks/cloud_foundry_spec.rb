@@ -3,20 +3,24 @@ require 'spec_helper'
 describe 'config:cf' do
   include_context 'rake'
 
-  before do
+  before :all do
     load File.expand_path("../../../lib/config/tasks/cloud_foundry.rake", __FILE__)
     Rake::Task.define_task(:environment)
   end
 
+  before do
+    allow($stdout).to receive(:puts) # suppressing console output during testing
+  end
+
   it 'creates the merge manifest file for cf' do
-    Config.load_and_set_settings "#{fixture_path}/cf_multilevel.yml"
+    Config.load_and_set_settings "#{fixture_path}/cf/cf_multilevel.yml"
 
     orig_rails_root = Rails.root
 
     begin
       Rails.application.config.root = Dir.mktmpdir
 
-      FileUtils.cp("#{fixture_path}/cf_manifest.yml", File.join(Rails.root, 'manifest.yml'))
+      FileUtils.cp("#{fixture_path}/cf/cf_manifest.yml", File.join(Rails.root, 'manifest.yml'))
 
       Rake::Task['config:cf'].execute({:app_name => 'app_name'})
 
@@ -38,7 +42,7 @@ describe 'config:cf' do
     begin
       Rails.application.config.root = Dir.mktmpdir
 
-      FileUtils.cp("#{fixture_path}/cf_manifest.yml", File.join(Rails.root, 'cf_manifest.yml'))
+      FileUtils.cp("#{fixture_path}/cf/cf_manifest.yml", File.join(Rails.root, 'cf_manifest.yml'))
 
       Rake::Task['config:cf'].execute({app_name: 'app_name', file_path: 'cf_manifest.yml'})
 

@@ -14,7 +14,7 @@ module Config
 
       settings_hash = Kernel.const_get(Config.const_name).to_hash.stringify_keys
 
-      prefix_keys_with_const_name_hash = to_dotted_hash(settings_hash, {}, Config.const_name)
+      prefix_keys_with_const_name_hash = to_dotted_hash(settings_hash, namespace: Config.const_name)
 
       app_hash = @manifest_hash['applications'].detect { |hash| hash['name'] == @app_name }
 

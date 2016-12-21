@@ -25,7 +25,7 @@ describe Config::CFManifestMerger do
 
   it 'merges the given YAML file with the cf manifest YAML file' do
     merger = Config::CFManifestMerger.new('some-cf-app', load_manifest('cf_manifest.yml'))
-    Config.load_and_set_settings "#{fixture_path}/cf_multilevel.yml"
+    Config.load_and_set_settings "#{fixture_path}/cf/cf_multilevel.yml"
 
     resulting_hash = merger.add_to_env
     expect(resulting_hash).to eq({
@@ -52,14 +52,14 @@ describe Config::CFManifestMerger do
 
   it 'raises an exception if there is conflicting keys' do
     merger = Config::CFManifestMerger.new('some-cf-app', load_manifest('cf_manifest.yml'))
-    Config.load_and_set_settings "#{fixture_path}/cf_conflict.yml"
+    Config.load_and_set_settings "#{fixture_path}/cf/cf_conflict.yml"
 
     expect {
       merger.add_to_env
     }.to raise_error(ArgumentError, 'Conflicting keys: DEFAULT_HOST, DEFAULT_PORT')
   end
 
-  def load_manifest path
-    YAML.load(IO.read("#{fixture_path}/#{path}"))
+  def load_manifest filename
+    YAML.load(IO.read("#{fixture_path}/cf/#{filename}"))
   end
 end

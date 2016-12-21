@@ -23,7 +23,7 @@ module Config
         )
 
         out = ''
-        dotted_hash = to_dotted_hash Kernel.const_get(Config.const_name).to_hash, {}, Config.const_name
+        dotted_hash = to_dotted_hash Kernel.const_get(Config.const_name).to_hash, namespace: Config.const_name
         dotted_hash.each {|key, value| out += " #{key}=#{value} "}
         out
       end
