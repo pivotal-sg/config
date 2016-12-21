@@ -27,7 +27,9 @@ module Config
       @manifest_hash
     end
 
-    private def check_conflicting_keys(env_hash, settings_hash)
+    private
+
+    def check_conflicting_keys(env_hash, settings_hash)
       conflicting_keys = env_hash.keys & settings_hash.keys
       raise ArgumentError.new("Conflicting keys: #{conflicting_keys.join(', ')}") if conflicting_keys.any?
     end
