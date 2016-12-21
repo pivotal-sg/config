@@ -3,7 +3,7 @@ require_relative '../../../lib/config/integrations/helpers/helpers'
 
 describe 'Helpers' do
 
-  subject { Class.new.include(Config::Integrations::Helpers).new }
+  subject { Class.new.send(:include, Config::Integrations::Helpers).new }
 
   describe '#to_dotted_hash' do
 
