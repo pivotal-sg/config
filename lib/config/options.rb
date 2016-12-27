@@ -1,8 +1,10 @@
 require 'ostruct'
+require 'config/validation/validate' if RUBY_VERSION >= '2.1'
 
 module Config
   class Options < OpenStruct
     include Enumerable
+    include Validation::Validate if RUBY_VERSION >= '2.1'
 
     def keys
       marshal_dump.keys
@@ -15,6 +17,7 @@ module Config
     def add_source!(source)
       # handle yaml file paths
       source = (Sources::YAMLSource.new(source)) if source.is_a?(String)
+      source = (Sources::HashSource.new(source)) if source.is_a?(Hash)
 
       @config_sources ||= []
       @config_sources << source
@@ -22,6 +25,7 @@ module Config
 
     def prepend_source!(source)
       source = (Sources::YAMLSource.new(source)) if source.is_a?(String)
+      source = (Sources::HashSource.new(source)) if source.is_a?(Hash)
 
       @config_sources ||= []
       @config_sources.unshift(source)
@@ -81,6 +85,7 @@ module Config
       marshal_load(__convert(conf).marshal_dump)
 
       reload_env! if Config.use_env
+      validate! if RUBY_VERSION >= '2.1'
 
       self
     end
@@ -148,15 +153,15 @@ module Config
     protected
 
     def descend_array(array)
-      array.length.times do |i|
-        value = array[i]
+      array.map do |value|
         if value.instance_of? Config::Options
-          array[i] = value.to_hash
+          value.to_hash
         elsif value.instance_of? Array
-          array[i] = descend_array(value)
+          descend_array(value)
+        else
+          value
         end
       end
-      array
     end
 
     # Recursively converts Hashes to Options (including Hashes inside Arrays)

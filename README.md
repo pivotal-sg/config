@@ -193,6 +193,15 @@ Settings.reload!
 > Note: this is an example usage, it is easier to just use the default local files `settings.local.yml,
 settings/#{Rails.env}.local.yml and environments/#{Rails.env}.local.yml` for your developer specific settings.
 
+You also have the option to add a raw hash as a source. One use case might be storing settings in the database or in environment variables that overwrite what is in the YML files.
+
+```ruby
+Settings.add_source!({some_secret: ENV['some_secret']})
+Settings.reload!
+```
+
+You may pass a hash to `prepend_source!` as well.
+
 ## Embedded Ruby (ERB)
 
 Embedded Ruby is allowed in the configuration files. Consider the two following config files.
@@ -266,6 +275,30 @@ located at `config/initializers/config.rb`.
 
 Check [Deep Merge](https://github.com/danielsdeleo/deep_merge) for more details.
 
+### Validation
+
+With Ruby 2.1 or newer, you can optionally define a schema to validate presence (and type) of specific config values:
+
+```ruby
+Config.setup do |config|
+  # ...
+  config.schema do
+    required(:youtube).schema do
+      required(:api_key).filled
+    end
+  end
+end
+```
+
+The above example demonstrates how to ensure that the configuration has the `youtube` structure
+with the `api_key` field filled.
+
+If you define a schema it will automatically be used to validate your config. If validation fails it will
+raise a `Config::Validation::Error` containing a nice message with information about all the mismatches
+between the schema and your config.
+
+Check [dry-validation](https://github.com/dry-rb/dry-validation) for more details.
+
 ### Environment variables
 
 See section below for more details.
@@ -299,6 +332,16 @@ filesystem gets recreated from the git sources on each instance refresh. To use 
 `use_env` var to `true` as mentioned above.
 
 To upload your local values to Heroku you could ran `bundle exec rake config:heroku`.
+
+### Working with Cloud Foundry
+
+Cloud Foundry integration will generate a manifest adding to your CF manifest.yml the defined ENV variables under the `env` section of specified app in the yaml file.
+You must specify the app name and optionally the name of your CF manifest file:
+
+    bundle exec rake config:cf[app_name, cf_manifest.yml]
+    
+The result of this command will have the manifest file name suffixed with the environment you ran the task in. You can then push your app with the generated manifest.    
+
 
 ### Fine-tuning
 
