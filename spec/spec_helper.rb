@@ -4,8 +4,8 @@ ENV['RAILS_ENV'] ||= 'test'
 # Code Climate
 #
 if ENV['TRAVIS']
-  require 'codeclimate-test-reporter'
-  CodeClimate::TestReporter.start
+  require 'simplecov'
+  SimpleCov.start
 end
 
 ##
@@ -47,6 +47,8 @@ RSpec.configure do |config|
         self.use_env          = false
         self.knockout_prefix  = nil
         self.overwrite_arrays = true
+        self.schema           = nil if RUBY_VERSION >= '2.1'
+        class_variable_set(:@@_ran_once, false)
       end
     end
   end
